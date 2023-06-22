@@ -22,6 +22,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     
     #Search by name URL
+    path('products/<str:name>/',views.all_products),
+    path('user/<int:pk>',views.user_info),
+
     path('products/', views.getAllProducts),
     path('products/<str:name>/', views.searchProduct),
     path('get-product/<int:id>/', views.getProduct),
@@ -30,6 +33,11 @@ urlpatterns = [
     path('delete-product/<int:id>/', views.deleteProduct),
    # path('products/<str:name>/',views.all_products),
     path('user/<int:pk>',views.user_info)
+
     
+    # Wishlist retrieve
+    path('wishlist/<int:pk>', views.Wishlist_pk),
+    # Checkout
+    path('checkout/<int:pk>', views.Checkout_pk),
     
 ]
