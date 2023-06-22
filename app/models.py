@@ -23,15 +23,14 @@ class Cart(models.Model):
     total_price=models.DecimalField(decimal_places=2,max_digits=10)
     product=models.ManyToManyField(Products, related_name='cart')
     user=models.OneToOneField(User,on_delete=models.CASCADE)
-    def __str__(self):
-        return self
+    
     
     
 class WishList(models.Model):
     product=models.ManyToManyField(Products)
     user=models.OneToOneField(User,on_delete=models.CASCADE)
     def __str__(self):
-        return self
+        return "Wishlist"
     
     
 

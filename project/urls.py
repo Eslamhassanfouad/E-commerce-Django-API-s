@@ -27,5 +27,7 @@ urlpatterns = [
     
     # Wishlist retrieve
     path('wishlist/<int:pk>', views.Wishlist_pk),
+    # Checkout
+    path('checkout/<int:pk>', views.Checkout_pk),
     
 ]

@@ -9,6 +9,7 @@ from .serializers import (
 )
 from rest_framework import status, filters
 from rest_framework.response import Response
+from django.core.mail import send_mail
 
 
 
@@ -48,6 +49,30 @@ def user_info(request, pk):
         else:
             return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+# 5) Checkout with sending email and emptying cart related to this user
+@api_view(['GET'])
+def Checkout_pk(request, pk):
+    # Retrieve the user and their cart
+    user = get_object_or_404(User, id=pk)
+    cart = Cart.objects.filter(user=user).first()
+
+    if not cart:
+        return Response({'detail': 'Cart is empty'}, status=status.HTTP_404_NOT_FOUND)
+
+    
+    send_mail(
+        'Your order has been processed',
+        'Thank you for your purchase!',
+        'hatemgad98@gmail.com',
+        [user.user_email],
+        fail_silently=False,
+    )
+
+    # Empty the user's cart
+    cart.product.clear()
+
+    return Response({'detail': 'Checkout successful'}, status=status.HTTP_200_OK)
 
 
 # 10) wish-list endpoint that get all products user liked
