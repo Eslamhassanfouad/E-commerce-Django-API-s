@@ -9,7 +9,6 @@ class Products(models.Model):
     def __str__(self):
         return self.product_name
 
-
 class User(models.Model):
     user_fname=models.CharField(max_length=50)
     user_lname=models.CharField(max_length=50)
