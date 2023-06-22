@@ -23,7 +23,9 @@ urlpatterns = [
     
     #Search by name URL
     path('products/<str:name>/',views.all_products),
-    path('user/<int:pk>',views.user_info)
+    path('user/<int:pk>',views.user_info),
     
+    # Wishlist retrieve
+    path('wishlist/<int:pk>', views.Wishlist_pk),
     
 ]

@@ -24,14 +24,14 @@ class Cart(models.Model):
     product=models.ManyToManyField(Products, related_name='cart')
     user=models.OneToOneField(User,on_delete=models.CASCADE)
     def __str__(self):
-        return 'Cart'
+        return self
     
     
 class WishList(models.Model):
     product=models.ManyToManyField(Products)
     user=models.OneToOneField(User,on_delete=models.CASCADE)
     def __str__(self):
-        return 'wish'
+        return self
     
     
 
