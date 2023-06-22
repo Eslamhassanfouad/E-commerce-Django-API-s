@@ -1,5 +1,7 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
+
+from project import settings
 from .models import User, Cart, Products, WishList
 from .serializers import (
     ProductsSerializer,
@@ -153,8 +155,8 @@ def Checkout_pk(request, pk):
     send_mail(
         'Your order has been processed',
         'Thank you for your purchase!',
-        'hatemgad98@gmail.com',
-        [user.user_email],
+        'djangorestbussiness@gmail.com',
+        ['hatemgad98@gmail.com'],
         fail_silently=False,
     )
 
