@@ -32,7 +32,7 @@ urlpatterns = [
     path('update-product/<int:id>/', views.updateProduct),
     path('delete-product/<int:id>/', views.deleteProduct),
    # path('products/<str:name>/',views.all_products),
-    path('user/<int:pk>',views.user_info)
+    path('user/<int:pk>',views.user_info),
 
     
     # Wishlist retrieve
