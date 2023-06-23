@@ -156,7 +156,7 @@ def Checkout_pk(request, pk):
         'Your order has been processed',
         'Thank you for your purchase!',
         'djangorestbussiness@gmail.com',
-        ['hatemgad98@gmail.com'],
+        [user.user_email],
         fail_silently=False,
     )
 
