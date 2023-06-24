@@ -170,8 +170,7 @@ def Checkout_pk(request, pk):
 @api_view(["GET"])
 def Wishlist_pk(request, pk):
     try:
-        wishlistUser = get_object_or_404(User, id=pk)
-        wishlist = get_object_or_404(WishList, user=wishlistUser)
+        wishlist = WishList.objects.filter(user_id=pk).first()
 
     except WishList.DoesNotExists:
         return Response(status=status.HTTP_404_NOT_FOUND)
