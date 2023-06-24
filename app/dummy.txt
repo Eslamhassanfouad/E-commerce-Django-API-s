@@ -1,0 +1,18 @@
+{
+         "is_superuser": "False",
+         "username": "eslam",
+         "first_name": "eslam",
+         "last_name": "eslam",
+         "is_staff": "True",
+        "is_active": "True",
+         "email": "eslamhassannew@gmail.com",
+        "password": "eslam"
+}
+
+// "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY4NzcyNjYxNywiaWF0IjoxNjg3NjQwMjE3LCJqdGkiOiIzODAwMjQwOWZhNjc0YjU3YjVjMjM0YjdiZTk0M2NjMiIsInVzZXJfaWQiOjN9.zvIov2aGWQIZm8yD2s47T6T5Z_tHeuVPKG3YVTDFrfw",
+// "access": 
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjg3NjQwNTE3LCJpYXQiOjE2ODc2NDAyMTcsImp0aSI6ImMwMzRjZTQyZmJjMzQ3OTk4YmQ0N2I4MzE0YTlhNmY4IiwidXNlcl9pZCI6M30.xuZ3XwLg70PQT3ihSuymdO537zq1qjsTz6CAWhkVmgE
+
+
+
+*/
