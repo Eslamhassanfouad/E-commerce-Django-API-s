@@ -14,7 +14,7 @@ urlpatterns = [
     path('api-auth/',include('rest_framework.urls')),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    
+
     path('admin/', admin.site.urls),
     
     path('register/', views.register, name='register'),
@@ -23,6 +23,8 @@ urlpatterns = [
     path('products/<str:name>/',views.all_products),
     path('product/<int:id>/', views.product_details),
     path('products/', views.getAllProducts),
+    path('create/product/', views.PostProduct.as_view()),
+
     # path('products/<str:name>/', views.searchProduct),
     # path('create-product/', views.createProduct),
     # path('update-product/<int:id>/', views.updateProduct),

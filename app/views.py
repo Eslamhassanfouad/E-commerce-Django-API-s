@@ -13,7 +13,7 @@ from .serializers import (
     CartSerializer,
     WishListSerializer,
 )
-from rest_framework import status, filters
+from rest_framework import status, filters, generics
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -36,7 +36,7 @@ from .serializers import (
 from rest_framework import status, filters
 from rest_framework.response import Response
 from django.core.mail import send_mail
-
+from config import host_user
 # ------------------------Function Based Views-----------------------------
 
 
@@ -48,14 +48,16 @@ def register(request):
     if request.method == "POST":
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
             send_mail(
             "Registration",
-            "Thank you Registering in our application!",
-            "djangorestbussiness@gmail.com",
-            [request.data.email],
-        fail_silently=False,
-    )
+            "Thank you for registering in our application!",
+            host_user,
+            
+            [request.data['email']],
+            fail_silently=False,
+            )
+            serializer.save()
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -120,6 +122,12 @@ def product_details(request, id):
         "product_description": serializer.data["product_description"],
     }
     return Response(data)
+
+
+class PostProduct(generics.CreateAPIView):
+    queryset = Products.objects.all()
+    serializer_class = ProductsSerializer
+    permission_classes = [IsAuthenticated]
 
 # Search For Products With Name
 # @api_view(['GET'])
@@ -254,12 +262,12 @@ def Checkout_pk(request, pk):
 
     if not cart:
         return Response({"detail": "Cart is empty"}, status=status.HTTP_404_NOT_FOUND)
-
+    
     send_mail(
         "Your order has been processed",
         "Thank you for your purchase!",
-        "djangorestbussiness@gmail.com",
-        [user.user_email],
+        host_user,
+        [user.email],
         fail_silently=False,
     )
 
