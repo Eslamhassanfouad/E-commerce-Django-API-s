@@ -48,17 +48,20 @@ def register(request):
     if request.method == "POST":
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
+            
+            serializer.save()
+            # user = User.objects.get(email=request.data['email']).first()
+
+            user = User.objects.filter(email=request.data['email']).first()
+            Cart.objects.create(user=user, total_price=0)
+            WishList.objects.create(user=user)
             send_mail(
             "Registration",
             "Thank you for registering in our application!",
             host_user,
-            [request.data['email']],
+            [user.email],
             fail_silently=False,
             )
-            serializer.save()
-            user = User.objects.filter(email=request.data['email']).first()
-            Cart.objects.create(user=user, total_price=0)
-            WishList.objects.create(user=user)
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
@@ -68,20 +71,19 @@ def register(request):
 @api_view(["GET", "PUT"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def user_info(request, pk):
-    user = get_object_or_404(User, pk=pk)
+def user_info(request):
+    user = get_object_or_404(User, email=request.user )
     if request.method == "GET":
         serializer = UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     elif request.method == "PUT":
-        serializer = UserSerializer(user=request.data)
+        serializer = UserSerializer(data=request.data, instance=user, partial=True)
         if serializer.is_valid():
-            serializer.update(user, serializer.data)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 # Product Functions
 # All Products search by name. (product image, name,and availability)
@@ -137,57 +139,41 @@ class PostProduct(generics.CreateAPIView):
 @api_view(['GET'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def cart_pk(request, pk):
+def user_cart(request):
     try:
-        cart = Cart.objects.filter(user_id=pk).first()
+        user = get_object_or_404(User, email=request.user )
+        cart = Cart.objects.filter(user=user).first()
         if cart == None:
             raise Exception()
     except:
-        return Response({"Details: Not Found"}, status= status.HTTP_404_NOT_FOUND)
-
-    # GET
-    if request.method == 'GET':
-        serializer = CartSerializer(cart, many=False)
-        return Response(serializer.data, status= status.HTTP_201_CREATED)
-        
-    # PUT
-    elif request.method == 'PUT':
-        serializer = CartSerializer(cart, data= request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
-    # DELETE
-    if request.method == 'DELETE':
-        cart.delete()
-        return Response(status= status.HTTP_204_NO_CONTENT)
+        return Response({"User Not Found"}, status= status.HTTP_404_NOT_FOUND)
+    print(cart)
+    serializer = CartSerializer(cart, many=False)
+    return Response(serializer.data, status= status.HTTP_201_CREATED)
 
 
 @api_view(['GET'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def user_cart_products(request, pk):
+def user_cart_products(request):
     try:
-        user = User.objects.get(pk=pk)
+        user = get_object_or_404(User, email=request.user )
         cart = Cart.objects.get(user=user)
-        products = cart.products.all()
+        products = cart.product.all()
         serializer = ProductsSerializer(products, many=True)
         return Response(serializer.data)
     except (User.DoesNotExist, Cart.DoesNotExist):
         raise Http404
 
+
 @api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 def AddToCart(request):
-    # Get the product and user from the request data
-    product_id = request.data.get('product_id')
-    user_id = request.data.get('user_id')
-    product = get_object_or_404(Products, id=product_id)
-    user = get_object_or_404(User, id=user_id)
+    product = get_object_or_404(Products, id=request.data['product'])
+    user = get_object_or_404(User, email=request.user)
+    cart = Cart.objects.get(user=user)
 
-    # Get or create the cart for the user
-    cart, created = Cart.objects.get_or_create(user=user)
-
-    # Add the product to the cart
     cart.product.add(product)
     total_price = sum(product.product_price for product in cart.product.all())
     cart.total_price = total_price
@@ -195,19 +181,18 @@ def AddToCart(request):
     return Response({'message': 'Product added to cart', 'cart': cart.id, 'total_price': cart.total_price}, status=status.HTTP_200_OK)
     
 
-
 # Checkout with sending email and emptying cart related to this user
 @api_view(["GET"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def Checkout_pk(request, pk):
-    # Retrieve the user and their cart
-    user = get_object_or_404(User, id=pk)
+def Checkout(request):
+    user = get_object_or_404(User, email=request.user)
     cart = Cart.objects.filter(user=user).first()
 
     if not cart:
         return Response({"detail": "Cart is empty"}, status=status.HTTP_404_NOT_FOUND)
-    
+
+    cart.product.clear()
     send_mail(
         "Your order has been processed",
         "Thank you for your purchase!",
@@ -215,9 +200,6 @@ def Checkout_pk(request, pk):
         [user.email],
         fail_silently=False,
     )
-
-    # Empty the user's cart
-    cart.product.clear()
     return Response({"detail": "Checkout successful"}, status=status.HTTP_200_OK)
 
 
@@ -227,7 +209,11 @@ def Checkout_pk(request, pk):
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def Wishlist_pk(request, pk):
+    # 
     try:
+        # use request.user, not external pl
+        # wishlistUser = get_object_or_404(User, user=request.user)
+
         wishlistUser = get_object_or_404(User, id=pk)
         wishlist = get_object_or_404(WishList, user=wishlistUser)
 
@@ -236,6 +222,8 @@ def Wishlist_pk(request, pk):
     products = wishlist.product.all()
     serializer = ProductsSerializer(products, many=True)
     return Response(serializer.data)
+
+
 
 
 @api_view(["POST"])

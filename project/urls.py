@@ -18,18 +18,18 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     
     path('register/', views.register, name='register'),
-    path('user/<int:pk>',views.user_info),
+    path('user/',views.user_info),
 
     path('products/<str:name>/',views.all_products),
     path('product/<int:id>/', views.product_details),
     path('products/', views.getAllProducts),
     path('create/product/', views.PostProduct.as_view()),
     
-    path('cart/<int:pk>', views.cart_pk),
-    path('cart/<int:pk>/products', views.user_cart_products),
-    path('cart/', views.AddToCart),
+    path('cart/', views.user_cart),
+    path('cart/add/', views.AddToCart),
+    path('cart/products', views.user_cart_products),
     
-    path('checkout/<int:pk>', views.Checkout_pk),
+    path('checkout/', views.Checkout),
 
     path('wishlist/<int:pk>', views.Wishlist_pk),
     path('wishlist/', views.AddToWishlist),
