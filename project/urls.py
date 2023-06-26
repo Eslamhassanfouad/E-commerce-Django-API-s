@@ -24,17 +24,14 @@ urlpatterns = [
     path('product/<int:id>/', views.product_details),
     path('products/', views.getAllProducts),
     path('create/product/', views.PostProduct.as_view()),
-
-    # path('products/<str:name>/', views.searchProduct),
-    # path('create-product/', views.createProduct),
-    # path('update-product/<int:id>/', views.updateProduct),
-    # path('delete-product/<int:id>/', views.deleteProduct),
-    # path('products/<str:name>/',views.all_products),
     
-    path('cart/', views.cart_List),
     path('cart/<int:pk>', views.cart_pk),
-    path('cart/<int:pk>/products', views.user_cart_products),    
+    path('cart/<int:pk>/products', views.user_cart_products),
+    path('cart/', views.AddToCart),
+    
     path('checkout/<int:pk>', views.Checkout_pk),
 
     path('wishlist/<int:pk>', views.Wishlist_pk),
+    path('wishlist/', views.AddToWishlist),
+
 ]

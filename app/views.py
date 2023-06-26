@@ -48,15 +48,17 @@ def register(request):
     if request.method == "POST":
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
-            send_mail(
-            "Registration",
-            "Thank you for registering in our application!",
-            host_user,
-            
-            [request.data['email']],
-            fail_silently=False,
-            )
+            # send_mail(
+            # "Registration",
+            # "Thank you for registering in our application!",
+            # host_user,
+            # [request.data['email']],
+            # fail_silently=False,
+            # )
             serializer.save()
+            user = User.objects.filter(email=request.data['email']).first()
+            Cart.objects.create(user=user, total_price=0)
+            WishList.objects.create(user=user)
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
@@ -129,100 +131,24 @@ class PostProduct(generics.CreateAPIView):
     serializer_class = ProductsSerializer
     permission_classes = [IsAuthenticated]
 
-# Search For Products With Name
-# @api_view(['GET'])
-# def searchProduct(request, name):
-#     matchedProducts = Products.objects.filter(product_name=name)
-#     matchedProductsSerialized=ProductsSerializer(matchedProducts,many=True)
-#     return Response(matchedProductsSerialized.data, status=200)
-
-# @api_view(["GET"])
-# def getAllProducts(request):
-#     products = Products.objects.all()
-#     serialized_Products = ProductsSerializer(products, many=True)
-#     return Response(serialized_Products.data)
-
-
-# # Get Specific Product
-# @api_view(["GET"])
-# def getProduct(request, id):
-#     try:
-#         product = Products.objects.get(id=id)
-#         serialized_Product = ProductsSerializer(product)
-#         return Response(serialized_Product.data, status=200)
-#     except:
-#         return Response({"Error - This Product Doesn’t Exist"}, status=400)
-
-
-# # Add New Product
-# @api_view(["GET", "POST"])
-# def createProduct(request):
-#     product = request.data
-#     serialized_Product = ProductsSerializer(data=product)
-#     if serialized_Product.is_valid():
-#         serialized_Product.save()
-#         return Response(serialized_Product.data, status=201)
-#     else:
-#         return Response(serialized_Product.errors, status=400)
-
-
-# # Update Existing Product
-# @api_view(["PUT"])
-# def updateProduct(request, id):
-#     try:
-#         product = Products.objects.get(id=id)
-#         for key, value in request.POST.items():
-#             setattr(product, key, value)
-#         serialized_Product = ProductsSerializer(product)
-#         product.save()
-#         return Response(serialized_Product.data, status=200)
-#     except:
-#         return Response({"Error - This Product Doesn’t Exist"}, status=400)
-
-
-# Delete Existing Product
-# @api_view(["DELETE"])
-# def deleteProduct(request, id):
-#     try:
-#         product = Products.objects.get(id=id)
-#         product.delete()
-#         return Response("{} is deleted".format(product))
-#         # return Response({`$productProduct Deleted`},status=200)
-#     except:
-#         return Response({"Error - This Product Does not Exist"}, status=400)
-
-
 # Cart Functions
-@api_view(['GET','POST'])
-@authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
-def cart_List(request):
-    # GET
-    if request.method == 'GET':
-        cart = Cart.objects.all()
-        serializer = CartSerializer(cart, many=True)
-        return Response(serializer.data)
-    # POST
-    elif request.method == 'POST':
-        serializer = CartSerializer(data= request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status= status.HTTP_201_CREATED)
-        return Response(serializer.data, status= status.HTTP_400_BAD_REQUEST)
 
 #3.1 GET PUT DELETE (a sepcific user's cart)
-@api_view(['GET','PUT','DELETE'])
+@api_view(['GET'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def cart_pk(request, pk):
-
-    cartUser = get_object_or_404(User, id=pk)
-    cart = get_object_or_404(Cart, user=cartUser)
+    try:
+        cart = Cart.objects.filter(user_id=pk).first()
+        if cart == None:
+            raise Exception()
+    except:
+        return Response({"Details: Not Found"}, status= status.HTTP_404_NOT_FOUND)
 
     # GET
     if request.method == 'GET':
         serializer = CartSerializer(cart, many=False)
-        return Response(serializer.data)
+        return Response(serializer.data, status= status.HTTP_201_CREATED)
         
     # PUT
     elif request.method == 'PUT':
@@ -250,6 +176,25 @@ def user_cart_products(request, pk):
     except (User.DoesNotExist, Cart.DoesNotExist):
         raise Http404
 
+@api_view(["POST"])
+def AddToCart(request):
+    # Get the product and user from the request data
+    product_id = request.data.get('product_id')
+    user_id = request.data.get('user_id')
+    product = get_object_or_404(Products, id=product_id)
+    user = get_object_or_404(User, id=user_id)
+
+    # Get or create the cart for the user
+    cart, created = Cart.objects.get_or_create(user=user)
+
+    # Add the product to the cart
+    cart.product.add(product)
+    total_price = sum(product.product_price for product in cart.product.all())
+    cart.total_price = total_price
+    cart.save()
+    return Response({'message': 'Product added to cart', 'cart': cart.id, 'total_price': cart.total_price}, status=status.HTTP_200_OK)
+    
+
 
 # Checkout with sending email and emptying cart related to this user
 @api_view(["GET"])
@@ -276,10 +221,8 @@ def Checkout_pk(request, pk):
     return Response({"detail": "Checkout successful"}, status=status.HTTP_200_OK)
 
 
-# 10) wish-list endpoint that get all products user liked
-
-
 # Wishlist Functions
+
 @api_view(["GET"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
@@ -293,3 +236,24 @@ def Wishlist_pk(request, pk):
     products = wishlist.product.all()
     serializer = ProductsSerializer(products, many=True)
     return Response(serializer.data)
+
+
+@api_view(["POST"])
+def AddToWishlist(request):
+    # Get the product and user from the request data
+    product_id = request.data.get('product_id')
+    user_id = request.data.get('user_id')
+    product = get_object_or_404(Products, id=product_id)
+    user = get_object_or_404(User, id=user_id)
+
+    # Get or create the cart for the user
+    wishlist, created = WishList.objects.get_or_create(user=user)
+
+    # Add the product to the cart
+    wishlist.product.add(product)
+    total_price = sum(product.product_price for product in wishlist.product.all())
+    wishlist.total_price = total_price
+    wishlist.save()
+    return Response({'message': 'Product added to wishlist',
+                      'wishlist': wishlist.id}, 
+                    status=status.HTTP_200_OK)

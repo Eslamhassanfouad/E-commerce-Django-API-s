@@ -9,6 +9,7 @@ class Products(models.Model):
     product_description=models.TextField(max_length=255)
     product_quantity=models.PositiveIntegerField()
     product_image=models.ImageField(upload_to='product_images', null=False,blank=False)
+    product_price=models.PositiveIntegerField()
     def __str__(self):
         return self.product_name
 
