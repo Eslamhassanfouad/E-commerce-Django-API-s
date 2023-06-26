@@ -48,13 +48,13 @@ def register(request):
     if request.method == "POST":
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
-            # send_mail(
-            # "Registration",
-            # "Thank you for registering in our application!",
-            # host_user,
-            # [request.data['email']],
-            # fail_silently=False,
-            # )
+            send_mail(
+            "Registration",
+            "Thank you for registering in our application!",
+            host_user,
+            [request.data['email']],
+            fail_silently=False,
+            )
             serializer.save()
             user = User.objects.filter(email=request.data['email']).first()
             Cart.objects.create(user=user, total_price=0)
